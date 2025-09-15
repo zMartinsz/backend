@@ -1,6 +1,6 @@
 require('dotenv').config()
 const express = require('express');
-const routes = require('./routes/auth');
+const routes = require('./routes/user');
 const ratelimit = require('express-rate-limit');
 const database = require('./config/db')
 const app = express();

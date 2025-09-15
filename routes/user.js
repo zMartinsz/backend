@@ -6,6 +6,7 @@ const router = express.Router();
 
 const JWT_SECRET = process.env.secret
 
+//#region Registro
 router.post('/registro', async (req, res) => {
     try {
     const { name, email, password } = req.body;
@@ -28,5 +29,31 @@ router.post('/registro', async (req, res) => {
     res.status(500).json({ message: 'Erro no servidor' });
   }
 });
+//#endregion
 
+//#region login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: 'Email e senha são obrigatórios' });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: 'Credenciais inválidas' });
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ message: 'Credenciais inválidas' });
+
+    const payload = { id: user._id, email: user.email };
+    const token = jwt.sign(payload, JWT_SECRET);
+
+    res.json({ token, user: { id: user._id, email: user.email, name: user.name } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro no servidor' });
+  }
+});
+//#endregion
+
+
+//#endregion
 module.exports = router;
