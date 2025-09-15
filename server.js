@@ -1,11 +1,13 @@
 require('dotenv').config()
 const express = require('express');
-const routes = require('./routes/user');
+const routa_user = require('./routes/user');
+const routa_arquivos = require('./routes/arquivos');
 const ratelimit = require('express-rate-limit');
-const database = require('./config/db')
+const auth = require('./middleware/auth');
+const database = require('./config/db');
 const app = express();
 const port = process.env.port || 4000;
-database.default()
+database.default();
 app.use(express.json());
 //#region  Limitador 
 const limiter = ratelimit({
@@ -15,7 +17,8 @@ const limiter = ratelimit({
 app.use(limiter);
 //#endregion
 
-app.use('', routes);
+app.use('', routa_user);
+app.use('arquivos', routa_arquivos);
 app.listen(port, () => {
     console.log(`🚀 Server rodando na porta ${port}`)
 })
