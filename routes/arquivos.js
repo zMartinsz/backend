@@ -4,6 +4,7 @@ const Arquivo = require('../models/arquivos');
 const router = express.Router();
 const auth = require('../middleware/auth')
 const { validEmail, validPassword, ValidType } = require('../utils/valid');
+const User = require('../models/user');
 //#region Multer storage em memória
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -81,10 +82,10 @@ router.get('/listar', async (req, res) => {
   const token = authHeader.split(' ')[1]
 
   // busca o usuário pelo id e token
-    const user = await User.findOne({ _id: decoded.id, token });
+    const user = await User.findOne({token: token });
     if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
-
-    
+    const arquivos = await Arquivo.find({ cargo: user.type });
+    return res.json(arquivos)
 })
 //#endregion
 module.exports = router;
