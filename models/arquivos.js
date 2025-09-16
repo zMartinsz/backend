@@ -5,7 +5,8 @@ const ArquivoSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   arquivo: { type: Buffer, required: true },
   tipo: { type: String, required: true },
-  criadoEm: { type: Date, default: Date.now }
+  criadoEm: { type: Date, default: Date.now },
+  cargo: { type: [String], default: ["adm"], required: true}
 }, { _id: false }); // desliga ObjectId automático
 
 module.exports = mongoose.model('Arquivo', ArquivoSchema);

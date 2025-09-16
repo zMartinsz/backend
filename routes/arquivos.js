@@ -3,7 +3,8 @@ const multer = require('multer');
 const Arquivo = require('../models/arquivos');
 const router = express.Router();
 const auth = require('../middleware/auth')
-// Multer storage em memória
+const { validEmail, validPassword, ValidType } = require('../utils/valid');
+//#region Multer storage em memória
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -15,32 +16,38 @@ const upload = multer({
     cb(null, true);
   }
 });
-
-// Rota POST: envia ID via JSON + arquivo
-router.post('/upload', auth, upload.single('arquivo'), async (req, res) => {
+//#endregion
+//#region Enviar
+router.post('/upload', upload.single('arquivo'), async (req, res) => {
   try {
-    // pega o ID enviado pelo form-data
-    const { id } = req.body; 
+    const { id, motorista } = req.body; 
     if (!id) return res.status(400).json({ message: 'ID é obrigatório' });
+    if (!motorista) return res.status(400).json({ message: 'Cargo errado' });
 
     const { originalname, mimetype, buffer } = req.file;
 
+    // Cria o documento já com o cargo no array
     const arquivo = new Arquivo({
-      _id: id,           // ID passado pelo cliente
+      _id: id,            // ID passado pelo cliente
       nome: originalname,
       tipo: mimetype,
-      arquivo: buffer
+      arquivo: buffer,
+      cargo: [motorista, "adm"]   // array já iniciado com o cargo
     });
 
-    await arquivo.save();
+    await arquivo.save(); // salva no banco
     res.status(201).json({ message: 'Arquivo salvo com sucesso', id: arquivo._id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.get('/:id', async (req, res) => {
-  const arquivo = await Arquivo.findById(req.params.id);
+
+//#endregion
+
+//#region download
+router.get('/download', auth, async (req, res) => {
+  try{const arquivo = await Arquivo.findById(req.body.id);
   if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
 
   res.set({
@@ -48,5 +55,36 @@ router.get('/:id', async (req, res) => {
     'Content-Disposition': `attachment; filename="${arquivo.nome}"`
   });
   res.send(arquivo.arquivo);
-});
+}catch (err){
+  res.status(500).json({error: err.message})
+}});
+
+//#endregion
+
+//#region delete
+router.post('/delete', async (req,res) => {
+  try{
+    const {id} = req.body
+    await Arquivo.findByIdAndDelete(id);
+    return res.status(400).json({arquivo: "deletado"})
+  }catch (err){
+  res.status(500).json({error: err.message})
+  }});
+//#endregion
+
+//#region listar
+router.get('/listar', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token não providenciado' });
+  }
+  const token = authHeader.split(' ')[1]
+
+  // busca o usuário pelo id e token
+    const user = await User.findOne({ _id: decoded.id, token });
+    if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
+
+    
+})
+//#endregion
 module.exports = router;

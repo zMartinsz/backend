@@ -17,8 +17,8 @@ const limiter = ratelimit({
 app.use(limiter);
 //#endregion
 
-app.use('', routa_user);
-app.use('arquivos', routa_arquivos);
+app.use('/user', routa_user);
+app.use('/arquivos', routa_arquivos);
 app.listen(port, () => {
     console.log(`🚀 Server rodando na porta ${port}`)
 })
