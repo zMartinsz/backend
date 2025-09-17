@@ -24,7 +24,7 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
     const { id, motorista } = req.body; 
     if (!id) return res.status(400).json({ message: 'ID é obrigatório' });
     if (!motorista) return res.status(400).json({ message: 'Cargo errado' });
-
+    if (!ValidType(motorista)) return res.status(400).json({ message: "cargo erradoo"})
     const { originalname, mimetype, buffer } = req.file;
 
     // Cria o documento já com o cargo no array
@@ -79,13 +79,19 @@ router.get('/listar', async (req, res) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token não providenciado' });
   }
-  const token = authHeader.split(' ')[1]
+
+  const token = authHeader.split(' ')[1];
 
   // busca o usuário pelo id e token
-    const user = await User.findOne({token: token });
-    if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
-    const arquivos = await Arquivo.find({ cargo: user.type });
-    return res.json(arquivos)
-})
+  const user = await User.findOne({ token: token });
+  if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
+  // retorna só o _id
+  const arquivos = await Arquivo.find(
+    { cargo: { $in: user.type } },
+    { _id: 1 }
+  );
+
+  return res.json({ arquivo: arquivos, cargo: user.type });
+});
 //#endregion
 module.exports = router;
