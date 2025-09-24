@@ -110,4 +110,27 @@ router.post('/find', async (req, res) => {
   }
 });
 //#endregion
+
+//#region buscar_cargo
+router.post('/fc', async (req, res) => {
+  try{
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token não providenciado' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Encontra usuário com esse token e remove
+    const user = await User.findOne({ token });
+    if (!user) return res.status(404).json({ message: 'Token não encontrado' });
+
+    res.status(200).json({cargo: user.type})
+  }catch(err){
+    console.error(err);
+    res.status(500).json({message: 'erro ao procurar cargo'})
+  }
+});
+//#endregion
+
 module.exports = router;
