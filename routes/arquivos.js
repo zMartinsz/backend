@@ -91,7 +91,7 @@ router.get('/listar', async (req, res) => {
     { _id: 1 }
   );
 
-  return res.json({ arquivo: arquivos, cargo: user.type });
+  return res.json({ arquivo: arquivos});
 });
 //#endregion
 module.exports = router;
