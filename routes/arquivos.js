@@ -47,7 +47,7 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
 //#endregion
 
 //#region download
-router.post('/download', auth, async (req, res) => {
+router.post('/download', async (req, res) => {
   try{const arquivo = await Arquivo.findById(req.body.id);
   if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
 
