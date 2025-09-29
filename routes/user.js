@@ -86,16 +86,30 @@ router.post('/logout', async (req, res) => {
 //#endregion
 //#region Deletar
 router.post('/delete_account', async (req, res) => {
-  try{
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!email || !user) return res.status(400).json({ message: 'Email e usuario são obrigatórios' });
-    await User.deleteOne({"email": email})
-    return res.status(400).json({user: user.email})
- }catch (err) {
-  console.error(err);
-  res.status(500).json({message: 'erro ao deletar'})
- }
+ try {
+    const { name } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token não providenciado' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const user = await User.findOne({ token });
+    if (!user) {
+      return res.status(404).json({ message: 'Token não encontrado' });
+    }
+
+    // 👇 verifica se existe "adm" no array user.type
+    const isAdm = Array.isArray(user.type) && user.type.includes("adm");
+    if (isAdm){
+      await User.deleteOne({"name": name})
+      return res.status(200).json({user: user.name})
+    }else{
+      return res.status(403).json({message: "acesso negado"})
+    }
+  }catch(err){
+    return res.status(401).json({error: err.message})
+  }
 });
 //#endregion
 //#region buscar
