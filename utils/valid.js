@@ -8,7 +8,7 @@ function validPassword(pw) {
   return typeof pw === 'string' && pw.length >= 6;
 }
 function ValidType(type){
-  cargos = ["motorista_carro", "motorista_caminhao"]
+  cargos = ["motorista_carro", "motorista_caminhao", "adm"]
     return cargos.includes(type)
 }
 

@@ -87,29 +87,42 @@ router.post('/logout', async (req, res) => {
 //#region Deletar
 router.post('/delete_account', async (req, res) => {
  try {
-    const { name } = req.body;
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Token não providenciado' });
-    }
+  const { name } = req.body;
+  const authHeader = req.headers.authorization;
 
-    const token = authHeader.split(' ')[1];
-    const user = await User.findOne({ token });
-    if (!user) {
-      return res.status(404).json({ message: 'Token não encontrado' });
-    }
-
-    // 👇 verifica se existe "adm" no array user.type
-    const isAdm = Array.isArray(user.type) && user.type.includes("adm");
-    if (isAdm){
-      await User.deleteOne({"name": name})
-      return res.status(200).json({user: user.name})
-    }else{
-      return res.status(403).json({message: "acesso negado"})
-    }
-  }catch(err){
-    return res.status(401).json({error: err.message})
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Token não providenciado' });
   }
+
+  if (!name) {
+    return res.status(400).json({ message: 'Nome do usuário é obrigatório' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  const user = await User.findOne({ token });
+
+  if (!user) {
+    return res.status(404).json({ message: 'Usuário com esse token não encontrado' });
+  }
+
+  const isAdm = Array.isArray(user.type) && user.type.includes("adm");
+
+  if (!isAdm) {
+    return res.status(403).json({ message: 'Acesso negado. Apenas administradores podem deletar usuários.' });
+  }
+
+  const deleted = await User.deleteOne({ name });
+
+  if (deleted.deletedCount === 0) {
+    return res.status(404).json({ message: 'Usuário não encontrado para exclusão.' });
+  }
+
+  return res.status(200).json({ message: `Usuário '${name}' deletado com sucesso.` });
+
+} catch (err) {
+  console.error(err);
+  return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
+}
 });
 //#endregion
 //#region buscar
