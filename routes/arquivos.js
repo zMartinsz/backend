@@ -63,7 +63,7 @@ router.post('/download', async (req, res) => {
 //#endregion
 
 //#region delete
-router.post('/delete', async (req,res) => {
+router.delete('/delete', async (req,res) => {
   try{
     const {id} = req.body
     await Arquivo.findByIdAndDelete(id);
