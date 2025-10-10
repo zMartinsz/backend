@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ArquivoSchema = new mongoose.Schema({
-  id: { type: String, required: true, unique: true },
+  uuid: { type: String, required: true, unique: true },
   _id: { type: String, required: true }, // ID custom passado pelo cliente
   nome: { type: String, required: true },
   arquivo: { type: Buffer, required: true },
