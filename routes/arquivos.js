@@ -111,23 +111,25 @@ router.get('/download/:id', async (req, res) => {
       return res.status(404).json({ message: 'Arquivo não encontrado' });
     }
 
-    // Nome seguro p/ header
-    const nomeSeguro =
-      (arquivo.nome && String(arquivo.nome).replace(/"/g, '')) ||
-      (arquivo.uuid ? `${arquivo.uuid}.pdf` : `${uuid}.pdf`);
+    // define nome final SEM aspas/acentos problemáticos
+    const uuidStr = String(arquivo.uuid || id);
+    const nomeFinal = `${uuidStr}.pdf`.replace(/"/g, '');
 
-    res.setHeader('Content-Type', arquivo.tipo || 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${nomeSeguro}"`);
-    if (arquivo.arquivo?.length) {
-      res.setHeader('Content-Length', arquivo.arquivo.length);
+    const buf = arquivo.arquivo; // Buffer do Mongo
+    if (!buf || !buf.length) {
+      return res.status(404).json({ message: 'Conteúdo vazio' });
     }
 
-    return res.status(200).send(arquivo.arquivo); // Buffer
+    // cabeçalhos de download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Length', buf.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${nomeFinal}"`);
+
+    return res.status(200).end(buf);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 });
-
 //#endregion
 
 //#region delete
