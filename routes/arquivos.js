@@ -114,7 +114,7 @@ router.get('/arquivos/download/:id', async (req, res) => {
     // Nome seguro p/ header
     const nomeSeguro =
       (arquivo.nome && String(arquivo.nome).replace(/"/g, '')) ||
-      (arquivo.uuid ? `${arquivo.uuid}.pdf` : `${id}.pdf`);
+      (arquivo.uuid ? `${arquivo.uuid}.pdf` : `${uuid}.pdf`);
 
     res.setHeader('Content-Type', arquivo.tipo || 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${nomeSeguro}"`);
