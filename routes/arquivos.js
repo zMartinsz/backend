@@ -102,18 +102,31 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
 //#endregion
 
 //#region download
-router.post('/download', async (req, res) => {
-  try{const arquivo = await Arquivo.findById(req.body.id);
-  if (!arquivo) return res.status(404).json({ message: 'Arquivo não encontrado' });
+router.get('/arquivos/download/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  res.set({
-    'Content-Type': arquivo.tipo,
-    'Content-Disposition': `attachment; filename="${arquivo.nome}"`
-  });
-  res.send(arquivo.arquivo);
-}catch (err){
-  res.status(500).json({error: err.message})
-}});
+    const arquivo = await Arquivo.findById(id);
+    if (!arquivo) {
+      return res.status(404).json({ message: 'Arquivo não encontrado' });
+    }
+
+    // Nome seguro p/ header
+    const nomeSeguro =
+      (arquivo.nome && String(arquivo.nome).replace(/"/g, '')) ||
+      (arquivo.uuid ? `${arquivo.uuid}.pdf` : `${id}.pdf`);
+
+    res.setHeader('Content-Type', arquivo.tipo || 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${nomeSeguro}"`);
+    if (arquivo.arquivo?.length) {
+      res.setHeader('Content-Length', arquivo.arquivo.length);
+    }
+
+    return res.status(200).send(arquivo.arquivo); // Buffer
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 //#endregion
 
