@@ -46,6 +46,7 @@ async function obterUuidIncrementado() {
     }, 0);
 
     // Incrementar em 1 o maior valor encontrado
+    console.log(maiorUuid + 1);
     return maiorUuid + 1;
   } catch (error) {
     console.error("Erro ao obter UUID incrementado:", error);
@@ -64,7 +65,8 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
     const { originalname, mimetype, buffer } = req.file;
 
     const novoUuid = await obterUuidIncrementado();
-
+    console.log(novoUuid);
+    console.log(id)
     // Detecta PDF por MIME ou extensão
     const isPdf =
       mimetype === 'application/pdf' ||
