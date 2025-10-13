@@ -106,7 +106,7 @@ router.get('/arquivos/download/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const arquivo = await Arquivo.findById(id);
+    const arquivo = await Arquivo.findById(uuid);
     if (!arquivo) {
       return res.status(404).json({ message: 'Arquivo não encontrado' });
     }
