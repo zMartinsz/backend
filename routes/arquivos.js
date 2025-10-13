@@ -102,7 +102,7 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
 //#endregion
 
 //#region download
-router.get('/arquivos/download/:id', async (req, res) => {
+router.get('/download/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
