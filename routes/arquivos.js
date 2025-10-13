@@ -57,21 +57,42 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
     const { id, motorista } = req.body; 
     if (!id) return res.status(400).json({ message: 'ID é obrigatório' });
     if (!motorista) return res.status(400).json({ message: 'Cargo errado' });
-    if (!ValidType(motorista)) return res.status(400).json({ message: "cargo erradoo"})
+    if (!ValidType(motorista)) return res.status(400).json({ message: "cargo erradoo"});
+
+    if (!req.file) return res.status(400).json({ message: 'Arquivo é obrigatório' });
+
     const { originalname, mimetype, buffer } = req.file;
+
     const novoUuid = await obterUuidIncrementado();
-    // Cria o documento já com o cargo no array
+
+    // Detecta PDF por MIME ou extensão
+    const isPdf =
+      mimetype === 'application/pdf' ||
+      path.extname(originalname || '').toLowerCase() === '.pdf';
+
+    // Se for PDF, renomeia para <uuid>.pdf
+    const nomeFinal = isPdf ? `${novoUuid}.pdf` : (originalname || `${novoUuid}`);
+
+    // (opcional) normalize o tipo se for pdf
+    const tipoFinal = isPdf ? 'application/pdf' : mimetype;
+
     const arquivo = new Arquivo({
-      uuid: novoUuid.toString(),
-      _id: id,            // ID passado pelo cliente
-      nome: originalname,
-      tipo: mimetype,
+      _id: id,                    // ID passado pelo cliente
+      uuid: String(novoUuid),     // garante string
+      nome: nomeFinal,            // <- aqui está o "rename" lógico
+      tipo: tipoFinal,
       arquivo: buffer,
-      cargo: [motorista, "adm"]   // array já iniciado com o cargo
+      cargo: [motorista, "adm"]
     });
 
-    await arquivo.save(); // salva no banco
-    res.status(201).json({ message: 'Arquivo salvo com sucesso', id: arquivo._id });
+    await arquivo.save();
+
+    res.status(201).json({
+      message: 'Arquivo salvo com sucesso',
+      id: arquivo._id,
+      uuid: arquivo.uuid,
+      nome: arquivo.nome
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
