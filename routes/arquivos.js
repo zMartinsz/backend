@@ -104,31 +104,35 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
 //#endregion
 
 //#region download
+
 router.get('/download/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Buscar arquivo pelo id
     const arquivo = await Arquivo.findById(id);
     if (!arquivo) {
       return res.status(404).json({ message: 'Arquivo não encontrado' });
     }
 
-    // define nome final SEM aspas/acentos problemáticos
-    const uuidStr = String(arquivo.uuid || id);
-    const nomeFinal = `${uuidStr}.pdf`.replace(/"/g, '');
+    // Define o nome final do arquivo, removendo aspas e caracteres problemáticos
+    const uuidStr = String(arquivo.uuid);
+    const nomeFinal = `${uuidStr}.pdf`.replace(/["\s\[\]#&;]/g, '_'); // Substitui aspas, espaços e caracteres problemáticos
 
     const buf = arquivo.arquivo; // Buffer do Mongo
     if (!buf || !buf.length) {
       return res.status(404).json({ message: 'Conteúdo vazio' });
     }
 
-    // cabeçalhos de download
+    // Define os cabeçalhos de download
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Length', buf.length);
     res.setHeader('Content-Disposition', `attachment; filename="${nomeFinal}"`);
 
+    // Envia o arquivo
     return res.status(200).end(buf);
   } catch (err) {
+    console.error('Erro no download do arquivo:', err.message); // Melhor log de erro
     return res.status(500).json({ error: err.message });
   }
 });
