@@ -164,7 +164,7 @@ router.get('/listar', async (req, res) => {
   // retorna só o _id
   const arquivos = await Arquivo.find(
     { cargo: { $in: user.type } },
-    { _id: 1 }
+    { _id: 1,  uuid: 1 }
   );
 
   return res.json({ arquivo: arquivos});
