@@ -143,7 +143,7 @@ router.delete('/delete', async (req,res) => {
   try{
     const {uuid} = req.body
     await Arquivo.findByIdAndDelete(uuid);
-    return res.status(400).json({arquivo: "deletado"})
+    return res.status(200).json({arquivo: "deletado"})
   }catch (err){
   res.status(500).json({error: err.message})
   }});
