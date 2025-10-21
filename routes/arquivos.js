@@ -141,8 +141,8 @@ router.get('/download/:id', async (req, res) => {
 //#region delete
 router.delete('/delete', async (req,res) => {
   try{
-    const {id} = req.body
-    await Arquivo.findByIdAndDelete(id);
+    const {uuid} = req.body
+    await Arquivo.findByIdAndDelete(uuid);
     return res.status(400).json({arquivo: "deletado"})
   }catch (err){
   res.status(500).json({error: err.message})
