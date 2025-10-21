@@ -105,9 +105,9 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
 
 //#region download
 
-router.get('/download/:id', async (req, res) => {
+router.get('/download/:uuid', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { uuid } = req.params;
 
     // Buscar arquivo pelo id
     const arquivo = await Arquivo.findById(uuid);
