@@ -109,8 +109,8 @@ router.get('/download/:uuid', async (req, res) => {
   try {
     const { uuid } = req.params;
 
-    // Buscar arquivo pelo id
-    const arquivo = await Arquivo.findById(uuid);
+    // Buscar arquivo pelo uuid
+    const arquivo = await Arquivo.findOne({ uuid });
     if (!arquivo) {
       return res.status(404).json({ message: 'Arquivo não encontrado' });
     }
@@ -132,7 +132,7 @@ router.get('/download/:uuid', async (req, res) => {
     // Envia o arquivo
     return res.status(200).end(buf);
   } catch (err) {
-    console.error('Erro no download do arquivo:', err.message); // Melhor log de erro
+    console.error('Erro no download do arquivo:', err.message);
     return res.status(500).json({ error: err.message });
   }
 });
