@@ -109,27 +109,25 @@ router.get('/download/:uuid', async (req, res) => {
   try {
     const { uuid } = req.params;
 
-    // Buscar arquivo pelo uuid
     const arquivo = await Arquivo.findOne({ uuid });
     if (!arquivo) {
       return res.status(404).json({ message: 'Arquivo não encontrado' });
     }
 
-    // Define o nome final do arquivo, removendo aspas e caracteres problemáticos
-    const uuidStr = String(arquivo.uuid);
-    const nomeFinal = `${uuidStr}.pdf`.replace(/["\s\[\]#&;]/g, '_'); // Substitui aspas, espaços e caracteres problemáticos
-
-    const buf = arquivo.arquivo; // Buffer do Mongo
+    const buf = arquivo.arquivo;
     if (!buf || !buf.length) {
       return res.status(404).json({ message: 'Conteúdo vazio' });
     }
 
-    // Define os cabeçalhos de download
+    // Coloca infos extras nos headers
+    res.setHeader('X-UUID', arquivo.uuid);
+    res.setHeader('X-Nome-Arquivo', `${arquivo.uuid}.pdf`);
+    res.setHeader('X-Tamanho', buf.length);
+    res.setHeader('id', arquivo._id)
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Length', buf.length);
-    res.setHeader('Content-Disposition', `attachment; filename="${nomeFinal}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${arquivo.uuid}.pdf"`);
 
-    // Envia o arquivo
     return res.status(200).end(buf);
   } catch (err) {
     console.error('Erro no download do arquivo:', err.message);
