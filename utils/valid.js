@@ -11,11 +11,14 @@ function ValidType(type){
   cargos = ["motorista_carro", "motorista_caminhao", "adm"]
     return cargos.includes(type)
 }
-
+function ValidEmpresa(empresa){
+  empresas = ["Telsite", "Mas", "Paros", "Filial"]
+}
 function ValidDownload(role, tipo){
   if (role == "adm") return true;
   if (role === "motorista_caminhao" && tipo === "caminhao") return true;
   if (role === "motorista_veiculo" && tipo === "veiculo") return true;
   return false;
 }
-module.exports = { validEmail, validPassword, ValidType, ValidDownload };
+
+module.exports = { validEmail, validPassword, ValidType, ValidEmpresa, ValidDownload };
