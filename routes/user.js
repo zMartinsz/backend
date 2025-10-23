@@ -155,7 +155,7 @@ router.post('/fc', async (req, res) => {
 
     // 👇 verifica se existe "adm" no array user.type
     const isAdm = Array.isArray(user.type) && user.type.includes("adm");
-    const empresa = Array.isArray(user.empresa);
+    const empresa = user.empresa;
     return res.status(200).json({ isAdm, empresa});
   } catch (err) {
     console.error(err);
