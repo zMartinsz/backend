@@ -155,8 +155,8 @@ router.post('/fc', async (req, res) => {
 
     // 👇 verifica se existe "adm" no array user.type
     const isAdm = Array.isArray(user.type) && user.type.includes("adm");
-
-    return res.status(200).json({ isAdm });
+    const empresa = Array.isArray(user.empresa);
+    return res.status(200).json({ isAdm, empresa});
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Erro ao procurar cargo' });
