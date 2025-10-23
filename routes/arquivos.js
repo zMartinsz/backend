@@ -3,7 +3,7 @@ const multer = require('multer');
 const Arquivo = require('../models/arquivos');
 const router = express.Router();
 const auth = require('../middleware/auth')
-const { validEmail, validPassword, ValidType } = require('../utils/valid');
+const { validEmail, validPassword, ValidType, ValidEmpresa } = require('../utils/valid');
 const User = require('../models/user');
 //#region Multer storage em memória
 const storage = multer.memoryStorage();
@@ -55,11 +55,11 @@ async function obterUuidIncrementado() {
 }
 router.post('/upload', upload.single('arquivo'), async (req, res) => {
   try {
-    const { id, motorista } = req.body; 
+    const { id, motorista, empresa } = req.body; 
     if (!id) return res.status(400).json({ message: 'ID é obrigatório' });
     if (!motorista) return res.status(400).json({ message: 'Cargo errado' });
     if (!ValidType(motorista)) return res.status(400).json({ message: "cargo erradoo"});
-
+    if (!ValidEmpresa(empresa)) return res.status(400).json({message: 'Empresa e obrigatorio!'});
     if (!req.file) return res.status(400).json({ message: 'Arquivo é obrigatório' });
 
     const { originalname, mimetype, buffer } = req.file;
@@ -162,6 +162,7 @@ router.get('/listar', async (req, res) => {
   // retorna só o _id
   const arquivos = await Arquivo.find(
     { cargo: { $in: user.type } },
+    { empresa: { $in: user.empresa}},
     { _id: 1,  uuid: 1 }
   );
 
