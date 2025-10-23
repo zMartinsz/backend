@@ -84,7 +84,7 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
       nome: nomeFinal,            // <- aqui está o "rename" lógico
       tipo: tipoFinal,
       arquivo: buffer,
-      cargo: [motorista],
+      cargo: [motorista, "adm"],
       empresa: [empresa]
     });
 
@@ -161,12 +161,13 @@ router.get('/listar', async (req, res) => {
   const user = await User.findOne({ token: token });
   if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
   // retorna só o _id
-  const arquivos = await Arquivo.find(
-    { cargo: { $in: user.type } },
-    { empresa: { $in: user.empresa}},
-    { _id: 1,  uuid: 1 }
-  );
-
+ const arquivos = await Arquivo.find(
+  {
+    cargo: { $in: user.type },
+    empresa: { $in: user.empresa }
+  },
+  { _id: 1, uuid: 1 } // projeção
+);
   return res.json({ arquivo: arquivos});
 });
 //#endregion
