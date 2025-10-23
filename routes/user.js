@@ -164,7 +164,7 @@ router.post('/fc', async (req, res) => {
 
 //#endregion
 
-router.get('ping', async (req, res) => {
+router.get('/ping', async (req, res) => {
 res.status(200).json({message: 'pingado'})
 });
 module.exports = router;
