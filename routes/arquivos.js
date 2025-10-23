@@ -149,7 +149,7 @@ router.delete('/delete', async (req,res) => {
 //#endregion
 
 //#region listar
-router.get('/listar', async (req, res) => {
+router.post('/listar', async (req, res) => {
   const {empresa} = req.body;
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
