@@ -6,7 +6,7 @@ const ratelimit = require('express-rate-limit');
 const auth = require('./middleware/auth');
 const database = require('./config/db');
 const app = express();
-const port = process.env.port || 4000;
+const port = process.env.port || 10000;
 database.default();
 app.use(express.json());
 //#region  Limitador 
