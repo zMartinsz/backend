@@ -13,6 +13,7 @@ function ValidType(type){
 }
 function ValidEmpresa(empresa){
   empresas = ["Telsite", "Mas", "Paros", "Filial"]
+  return empresas.includes(empresa)
 }
 function ValidDownload(role, tipo){
   if (role == "adm") return true;
