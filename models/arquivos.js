@@ -6,7 +6,8 @@ const ArquivoSchema = new mongoose.Schema({
   nome: { type: String, required: true },
   arquivo: { type: Buffer, required: true },
   tipo: { type: String, required: true },
-  cargo: { type: [String], default: ["adm"], required: true}
+  cargo: { type: [String], default: ["motorista_carro"], required: true},
+  empresa: { type: [String], default: ["Telsite"], required: true}
 }); // desliga ObjectId automático
 
 module.exports = mongoose.model('Arquivo', ArquivoSchema);

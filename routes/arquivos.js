@@ -84,7 +84,8 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
       nome: nomeFinal,            // <- aqui está o "rename" lógico
       tipo: tipoFinal,
       arquivo: buffer,
-      cargo: [motorista, "adm"]
+      cargo: [motorista],
+      empresa: [empresa]
     });
 
     await arquivo.save();
