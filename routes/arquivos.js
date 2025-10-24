@@ -124,7 +124,8 @@ router.get('/download/:uuid', async (req, res) => {
     res.setHeader('X-UUID', arquivo.uuid);
     res.setHeader('X-Nome-Arquivo', `${arquivo.uuid}.pdf`);
     res.setHeader('X-Tamanho', buf.length);
-    res.setHeader('id', arquivo._id)
+    res.setHeader('id', arquivo._id);
+    res.setHeader('empresa', arquivo.empresa);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Length', buf.length);
     res.setHeader('Content-Disposition', `attachment; filename="${arquivo.uuid}.pdf"`);
@@ -166,7 +167,7 @@ router.get('/listar', async (req, res) => {
     cargo: { $in: user.type },
     empresa: { $in: user.empresa }
   },
-  { _id: 1, uuid: 1 } // projeção
+  { _id: 1, uuid: 1, empresa: 1} // projeção
 );
   return res.json({ arquivo: arquivos});
 });
