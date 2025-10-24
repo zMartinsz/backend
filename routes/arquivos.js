@@ -149,8 +149,7 @@ router.delete('/delete', async (req,res) => {
 //#endregion
 
 //#region listar
-router.post('/listar', async (req, res) => {
-  const {empresa} = req.body;
+router.get('/listar', async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Token não providenciado' });
@@ -165,7 +164,7 @@ router.post('/listar', async (req, res) => {
  const arquivos = await Arquivo.find(
   {
     cargo: { $in: user.type },
-    empresa: { $in: empresa }
+    empresa: { $in: user.empresa }
   },
   { _id: 1, uuid: 1 } // projeção
 );
