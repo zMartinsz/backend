@@ -8,28 +8,52 @@ const JWT_SECRET = process.env.secret
 
 //#region Registro
 router.post('/registro', async (req, res) => {
-    try {
-    const { name, email, password, type, empresa} = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email e senha são obrigatórios' });
-    if (!validEmail(email)) return res.status(400).json({ message: 'Email inválido' });
-    if (!validPassword(password)) return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
-    if (!ValidType(type)) return res.status(400).json({message: 'o cargo do usuario e invalido'});
-    if (!ValidEmpresa(empresa)) return res.status(400).json({message: 'A empresa e invalida'});
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(409).json({ message: 'Email já cadastrado' });
+  try {
+    const { name, email, password, type, empresa } = req.body;
 
-    const user = new User({ name, email, password, type, empresa});
+    // 🛑 Validações básicas
+    if (!email || !password) 
+      return res.status(400).json({ message: 'Email e senha são obrigatórios' });
+
+    if (!validEmail(email)) 
+      return res.status(400).json({ message: 'Email inválido' });
+
+    if (!validPassword(password)) 
+      return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
+
+    if (!ValidType(type)) 
+      return res.status(400).json({ message: 'Cargo do usuário inválido' });
+
+    // ✅ Validação do array de empresas
+    if (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== '')) {
+      return res.status(400).json({ message: 'O campo empresa deve ser um array de strings válido' });
+    }
+
+    // ⚠️ Verifica se o email já existe
+    const existing = await User.findOne({ email });
+    if (existing) 
+      return res.status(409).json({ message: 'Email já cadastrado' });
+
+    // 💾 Cria o usuário
+    const user = new User({ name, email, password, type, empresa });
     await user.save();
 
+    // 🔑 Cria token JWT
     const payload = { id: user._id, email: user.email };
     const token = jwt.sign(payload, JWT_SECRET);
 
-    res.status(201).json({ token, user: { id: user._id, email: user.email, name: user.name, type: user.type, empresa: user.empresa } });
+    // 📤 Retorna resposta
+    res.status(201).json({ 
+      token, 
+      user: { id: user._id, email: user.email, name: user.name, type: user.type, empresa: user.empresa } 
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro no servidor' });
   }
 });
+
 //#endregion
 
 //#region login

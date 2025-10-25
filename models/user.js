@@ -7,7 +7,7 @@ const userschema = new mongoose.Schema({
     password: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
     type: {type: [String], default: ["motorista_caminhao"], required: true, lowercase: true, trim: true},
-    empresa: {type: [String], default: ["telsite"], required: true, lowercase: true, trim: true},
+    empresa: {type: [String], default: ["Telsite"], required: true, lowercase: true, trim: true},
     token: {type: String}
 })
 
