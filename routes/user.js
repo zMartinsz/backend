@@ -209,7 +209,7 @@ router.get('/listar', async (req, res) => {
     // busca usuários que NÃO tenham 'adm' no array type
     const usuarios = await User.find(
       { type: { $nin: ['adm'] } }, // <- aqui é o filtro mágico
-      { name:1, empresa: 1 } // projeção
+      { name:1 } // projeção
     );
 
     return res.json({ user: usuarios });
