@@ -192,4 +192,30 @@ router.post('/fc', async (req, res) => {
 router.get('/ping', async (req, res) => {
 res.status(200).json({message: 'pingado'})
 });
+
+router.get('/listar', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token não providenciado' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // busca o usuário pelo token
+    const user = await User.findOne({ token: token });
+    if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
+
+    // busca usuários que NÃO tenham 'adm' no array type
+    const usuarios = await User.find(
+      { type: { $nin: ['adm'] } }, // <- aqui é o filtro mágico
+      { _id: 1, uuid: 1, empresa: 1 } // projeção
+    );
+
+    return res.json({ user: usuarios });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Erro interno do servidor' });
+  }
+});
 module.exports = router;
