@@ -55,37 +55,55 @@ async function obterUuidIncrementado() {
 }
 router.post('/upload', upload.single('arquivo'), async (req, res) => {
   try {
-    const { id, motorista, empresa } = req.body; 
+    const { id, motorista } = req.body;
+    let { empresa } = req.body;
+
+    // validações básicas
     if (!id) return res.status(400).json({ message: 'ID é obrigatório' });
     if (!motorista) return res.status(400).json({ message: 'Cargo errado' });
-    if (!ValidType(motorista)) return res.status(400).json({ message: "cargo erradoo"});
-    if (!ValidEmpresa(empresa)) return res.status(400).json({message: 'Empresa e obrigatorio!'});
+    if (!ValidType(motorista)) return res.status(400).json({ message: "Cargo inválido" });
     if (!req.file) return res.status(400).json({ message: 'Arquivo é obrigatório' });
 
+    // 🔹 se o campo "empresa" veio como string (ex: JSON do FormData), converte pra array
+    if (typeof empresa === 'string') {
+      try {
+        empresa = JSON.parse(empresa);
+      } catch {
+        empresa = [empresa]; // se não for JSON, transforma em array direto
+      }
+    }
+
+    // valida se todas as empresas são válidas
+    if (!Array.isArray(empresa) || empresa.length === 0) {
+      return res.status(400).json({ message: 'Empresa é obrigatória!' });
+    }
+
+    if (!empresa.every((e) => ValidEmpresa(e))) {
+      return res.status(400).json({ message: 'Uma ou mais empresas inválidas!' });
+    }
+
+    // pega os dados do arquivo
     const { originalname, mimetype, buffer } = req.file;
 
     const novoUuid = await obterUuidIncrementado();
-    console.log(novoUuid);
-    console.log(id)
-    // Detecta PDF por MIME ou extensão
+
+    // detecta PDF
     const isPdf =
       mimetype === 'application/pdf' ||
       path.extname(originalname || '').toLowerCase() === '.pdf';
 
-    // Se for PDF, renomeia para <uuid>.pdf
     const nomeFinal = isPdf ? `${novoUuid}.pdf` : (originalname || `${novoUuid}`);
-
-    // (opcional) normalize o tipo se for pdf
     const tipoFinal = isPdf ? 'application/pdf' : mimetype;
 
+    // salva no banco
     const arquivo = new Arquivo({
-      _id: id,                    // ID passado pelo cliente
-      uuid: String(novoUuid),     // garante string
-      nome: nomeFinal,            // <- aqui está o "rename" lógico
+      _id: id,
+      uuid: String(novoUuid),
+      nome: nomeFinal,
       tipo: tipoFinal,
       arquivo: buffer,
-      cargo: [motorista, "adm"],
-      empresa: [empresa]
+      cargo: [motorista, 'adm'],
+      empresa: empresa,
     });
 
     await arquivo.save();
@@ -94,12 +112,14 @@ router.post('/upload', upload.single('arquivo'), async (req, res) => {
       message: 'Arquivo salvo com sucesso',
       id: arquivo._id,
       uuid: arquivo.uuid,
-      nome: arquivo.nome
+      nome: arquivo.nome,
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 //#endregion
