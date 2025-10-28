@@ -192,6 +192,47 @@ router.get('/listar', async (req, res) => {
   return res.json({ arquivo: arquivos});
 });
 //#endregion
+router.get('/listar/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token não providenciado' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Busca o usuário pelo token
+    const user = await User.findOne({ token: token });
+    if (!user) {
+      return res.status(401).json({ message: 'Token inválido ou desativado' });
+    }
+
+    // Busca o arquivo pelo ID, garantindo que o usuário tem acesso pelo cargo e empresa
+    const arquivo = await Arquivo.findOne({
+      _id: id,
+      cargo: { $in: user.type },
+      empresa: { $in: user.empresa }
+    });
+
+    if (!arquivo) {
+      return res.status(404).json({ message: 'Arquivo não encontrado ou sem permissão' });
+    }
+
+    return res.json({
+      _id: arquivo._id,
+      uuid: arquivo.uuid,
+      nome: arquivo.nome,
+      tipo: arquivo.tipo,
+      cargo: arquivo.cargo,
+      empresa: arquivo.empresa
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Erro interno do servidor', error: err.message });
+  }
+});
 
 //#region Alterar
 router.post('/alter', upload.single('arquivo'), async (req, res) => {
