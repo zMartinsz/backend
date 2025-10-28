@@ -6,74 +6,52 @@ const router = express.Router();
 
 const JWT_SECRET = process.env.secret
 
-//#region Registro
-router.put('/update/:id', async (req, res) => {
+router.post('/registro', async (req, res) => {
   try {
-    const { id } = req.params;
     const { name, email, password, type, empresa } = req.body;
 
-    // 🧩 Busca o usuário
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-
     // 🛑 Validações básicas
-    if (email && !validEmail(email)) {
+    if (!email || !password) 
+      return res.status(400).json({ message: 'Email e senha são obrigatórios' });
+
+    if (!validEmail(email)) 
       return res.status(400).json({ message: 'Email inválido' });
-    }
 
-    if (password && !validPassword(password)) {
+    if (!validPassword(password)) 
       return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
-    }
 
-    if (type && !ValidType(type)) {
+    if (!ValidType(type)) 
       return res.status(400).json({ message: 'Cargo do usuário inválido' });
-    }
 
-    if (empresa && (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== ''))) {
+    // ✅ Validação do array de empresas
+    if (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== '')) {
       return res.status(400).json({ message: 'O campo empresa deve ser um array de strings válido' });
     }
 
-    // ⚠️ Evita duplicação de email
-    if (email && email !== user.email) {
-      const existing = await User.findOne({ email });
-      if (existing) {
-        return res.status(409).json({ message: 'Email já cadastrado por outro usuário' });
-      }
-    }
+    // ⚠️ Verifica se o email já existe
+    const existing = await User.findOne({ email });
+    if (existing) 
+      return res.status(409).json({ message: 'Email já cadastrado' });
 
-    // 🧱 Atualiza apenas o que foi enviado
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (type) user.type = type;
-    if (empresa) user.empresa = empresa;
-    if (password) {
-      // Hash da senha antes de salvar
-      const bcrypt = await import('bcryptjs');
-      user.password = await bcrypt.hash(password, 10);
-    }
-
+    // 💾 Cria o usuário
+    const user = new User({ name, email, password, type, empresa });
     await user.save();
 
-    // ✅ Retorno limpo
-    return res.status(200).json({
-      message: 'Usuário atualizado com sucesso',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        type: user.type,
-        empresa: user.empresa,
-      },
+    // 🔑 Cria token JWT
+    const payload = { id: user._id, email: user.email };
+    const token = jwt.sign(payload, JWT_SECRET);
+
+    // 📤 Retorna resposta
+    res.status(201).json({ 
+      token, 
+      user: { id: user._id, email: user.email, name: user.name, type: user.type, empresa: user.empresa } 
     });
 
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Erro ao atualizar usuário' });
+    res.status(500).json({ message: 'Erro no servidor' });
   }
 });
-
 
 //#endregion
 
