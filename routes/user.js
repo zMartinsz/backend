@@ -151,14 +151,23 @@ router.post('/delete_account', async (req, res) => {
 });
 //#endregion
 //#region buscar
-router.post('/find', async (req, res) => {
-  try{
-    const {email} = req.body;
-    const user = await User.findOne({email})
-    return res.status(200).json({user: user.name, email: user.email, name: user.name, tipo: user.type})
-  }catch (err){
+router.post('/find/:id', async (req, res) => {
+  try {
+    const { id } = req.params; // pega o id da URL
+    const user = await User.findById(id); // busca pelo _id
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    return res.status(200).json({
+      email: user.email,
+      name: user.name,
+      tipo: user.type,
+    });
+  } catch (err) {
     console.error(err);
-    res.status(500).json({message: 'erro ao procurar usuario'})
+    res.status(500).json({ message: 'Erro ao procurar usuário' });
   }
 });
 //#endregion
