@@ -235,43 +235,53 @@ router.post('/listar/:id', async (req, res) => {
 });
 
 //#region Alterar
-router.post('/alter', upload.single('arquivo'), async (req, res) => {
+
+
+// Rota POST para atualizar
+router.post("/update", upload.single("arquivo"), async (req, res) => {
   try {
-  const {uuid} = req.body;
+    const { _id, novoId, cargo, empresa } = req.body;
 
-  // Validação dos dados obrigatórios
-  if (!uuid) return res.status(400).json({ message: 'UUID é obrigatório' });
+    if (!_id) return res.status(400).json({ message: "O _id atual é obrigatório" });
 
-  // Verifica se o arquivo foi enviado
-  const { originalname, mimetype, buffer } = req.file;
+    // Buscar arquivo existente
+    const arquivoExistente = await Arquivo.findOneAndDelete({ _id });
+    if (!arquivoExistente) return res.status(404).json({ message: "Arquivo não encontrado" });
 
-  // Busca o arquivo existente com o uuid fornecido
-  const arquivoExistente = await Arquivo.findOne({ uuid });
+    // Gerar novo UUID
+    const novoUuid = await obterUuidIncrementado();
 
-  if (!arquivoExistente) {
-    return res.status(404).json({ message: 'Arquivo não encontrado!' });
+    // Definir nome final do arquivo: sempre uuid.pdf se houver upload
+    const nomeFinal = req.file ? `${novoUuid}.pdf` : arquivoExistente.nome;
+
+    // Criar novo documento
+    const novoArquivo = {
+      _id: novoId || _id,
+      uuid: novoUuid.toString(),
+      nome: nomeFinal,
+      arquivo: req.file?.buffer || arquivoExistente.arquivo,
+      tipo: req.file?.mimetype || arquivoExistente.tipo,
+      cargo: Array.isArray(cargo) ? cargo : arquivoExistente.cargo,
+      empresa: Array.isArray(empresa) ? empresa : arquivoExistente.empresa
+    };
+
+    const arquivoCriado = await Arquivo.create(novoArquivo);
+
+    // Deletar documento antigo apenas se o _id mudou
+    if (novoArquivo._id !== _id) {
+      await Arquivo.deleteOne({ _id });
+    }
+
+    res.status(200).json({
+      message: "Arquivo atualizado com sucesso",
+      arquivo: arquivoCriado
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+});
 
-  // Gerar um novo UUID para o arquivo
-  const novoUuid = await obterUuidIncrementado();
-
-  // Atualizar o arquivo com as novas informações, mas manter as antigas
-  const arquivoAtualizado = await Arquivo.findOneAndUpdate(
-    { uuid },  // Busca pelo UUID antigo
-    { 
-      uuid: novoUuid.toString(),  // Novo UUID
-      nome: originalname,  // Novo nome do arquivo
-      tipo: mimetype,  // Novo tipo do arquivo
-      arquivo: buffer,  // Novo conteúdo do arquivo
-    },
-    { new: true }  // Retorna o documento atualizado
-  );
-
-  // Retorna a resposta de sucesso com o arquivo atualizado
-  res.status(200).json({ message: 'Arquivo atualizado com sucesso', id: arquivoAtualizado._id });
-} catch (err) {
-  res.status(500).json({ error: err.message });
-}});
 
 //#endregion
 module.exports = router;
