@@ -192,7 +192,7 @@ router.get('/listar', async (req, res) => {
   return res.json({ arquivo: arquivos});
 });
 //#endregion
-router.get('/listar/:id', async (req, res) => {
+router.post('/listar/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const authHeader = req.headers.authorization;
