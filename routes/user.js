@@ -44,7 +44,7 @@ router.post('/registro', async (req, res) => {
     // 📤 Retorna resposta
     res.status(201).json({ 
       token, 
-      user: { id: user._id, email: user.email, name: user.name, type: user.type, empresa: user.empresa } 
+      user: user.name 
     });
 
   } catch (err) {
