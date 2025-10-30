@@ -187,7 +187,7 @@ router.get('/listar', async (req, res) => {
     cargo: { $in: user.type },
     empresa: { $in: user.empresa }
   },
-  { _id: 1, uuid: 1, empresa: 1} // projeção
+  { _id: 1, uuid: 1, empresa: 1, cargo: 1} // projeção
 );
   return res.json({ arquivo: arquivos});
 });
