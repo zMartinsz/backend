@@ -8,20 +8,17 @@ const JWT_SECRET = process.env.secret
 
 router.post('/registro', async (req, res) => {
   try {
-    const { name, emailOrCpf, password, type, empresa } = req.body;
+    const { name, cpf, password, type, empresa } = req.body;
 
     // 🛑 Validações básicas
-    if (!emailOrCpf || !password)
-      return res.status(400).json({ message: 'Email/CPF e senha são obrigatórios' });
+    if (!cpf || !password)
+      return res.status(400).json({ message: 'CPF e senha são obrigatórios' });
 
-    const isEmail = validEmail(emailOrCpf);
-    const isCpf = validCPF(emailOrCpf);
-
-    if (!isEmail && !isCpf)
-      return res.status(400).json({ message: 'Email ou CPF inválido' });
+    if (!validCPF(cpf))
+      return res.status(400).json({ message: 'CPF inválido' });
 
     if (!validPassword(password))
-      return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
+      return res.status(400).json({ message: 'Senha fraca (mínimo de 6 caracteres)' });
 
     if (!ValidType(type))
       return res.status(400).json({ message: 'Cargo do usuário inválido' });
@@ -31,27 +28,24 @@ router.post('/registro', async (req, res) => {
       return res.status(400).json({ message: 'O campo empresa deve ser um array de strings válido' });
     }
 
-    // ⚠️ Verifica se já existe o mesmo email ou CPF
-    const existing = await User.findOne({ $or: [{ email: emailOrCpf }, { cpf: emailOrCpf }] });
+    // ⚠️ Verifica se já existe o mesmo CPF
+    const existing = await User.findOne({ cpf });
     if (existing)
-      return res.status(409).json({ message: 'Email ou CPF já cadastrado' });
+      return res.status(409).json({ message: 'CPF já cadastrado' });
 
     // 💾 Cria o usuário
-    const userData = {
+    const user = new User({
       name,
+      cpf,
       password,
       type,
       empresa
-    };
+    });
 
-    if (isEmail) userData.email = emailOrCpf;
-    else userData.cpf = emailOrCpf;
-
-    const user = new User(userData);
     await user.save();
 
     // 🔑 Cria token JWT
-    const payload = { id: user._id, email: user.email || null, cpf: user.cpf || null };
+    const payload = { id: user._id, cpf: user.cpf };
     const token = jwt.sign(payload, JWT_SECRET);
 
     // 📤 Retorna resposta
@@ -65,7 +59,6 @@ router.post('/registro', async (req, res) => {
     res.status(500).json({ message: 'Erro no servidor' });
   }
 });
-
 //#endregion
 
 //#region login
