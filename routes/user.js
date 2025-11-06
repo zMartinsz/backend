@@ -251,7 +251,7 @@ router.put('/update/:id', async (req, res) => {
     }
 
     // Evita duplicação de email
-    if (email && email !== user.cpf) {
+    if (cpf && cpf !== user.cpf) {
       const existing = await User.findOne({ cpf });
       if (existing) return res.status(409).json({ message: 'Email já cadastrado por outro usuário' });
     }
