@@ -167,7 +167,7 @@ router.post('/find/:id', async (req, res) => {
 
     return res.status(200).json({
       email: user.email,
-      name: user.name,
+      name: user.cpf,
       tipo: user.type,
     });
   } catch (err) {
@@ -236,14 +236,14 @@ router.get('/listar', async (req, res) => {
 router.put('/update/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, type, empresa } = req.body;
+    const { name, cpf, password, type, empresa } = req.body;
 
     // Busca o usuário
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
     // Validações
-    if (email && !validEmail(email)) return res.status(400).json({ message: 'Email inválido' });
+    if (email && !validCPF(cpf)) return res.status(400).json({ message: 'cpf inválido' });
     if (password && !validPassword(password)) return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
     if (type && !ValidType(type)) return res.status(400).json({ message: 'Cargo do usuário inválido' });
     if (empresa && (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== ''))) {
@@ -251,14 +251,14 @@ router.put('/update/:id', async (req, res) => {
     }
 
     // Evita duplicação de email
-    if (email && email !== user.email) {
-      const existing = await User.findOne({ email });
+    if (email && email !== user.cpf) {
+      const existing = await User.findOne({ cpf });
       if (existing) return res.status(409).json({ message: 'Email já cadastrado por outro usuário' });
     }
 
     // Atualiza os campos
     if (name) user.name = name;
-    if (email) user.email = email;
+    if (email) user.cpf = cpf;
     if (type) user.type = type;
     if (empresa) user.empresa = empresa;
     if (password) user.password = password; // pre-save vai hash
@@ -270,7 +270,7 @@ router.put('/update/:id', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email,
+        email: user.cpf,
         type: user.type,
         empresa: user.empresa,
       },
