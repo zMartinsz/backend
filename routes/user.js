@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { validEmail, validPassword, ValidType, ValidEmpresa } = require('../utils/valid');
+const { validEmail, validPassword, ValidType, validCPF } = require('../utils/valid');
 const router = express.Router();
 
 const JWT_SECRET = process.env.secret
