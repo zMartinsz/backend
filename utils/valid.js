@@ -40,4 +40,4 @@ function ValidDownload(role, tipo){
   return false;
 }
 
-module.exports = { validEmail, validPassword, ValidType, ValidEmpresa, ValidDownload, ValidCPF };
+module.exports = { validEmail, validPassword, ValidType, ValidEmpresa, ValidDownload, validCPF };
