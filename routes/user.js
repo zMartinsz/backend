@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
     const { cpf, password } = req.body;
     if (!cpf || !password) return res.status(400).json({ message: 'cpf e senha são obrigatórios' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ cpf });
     if (!user) return res.status(401).json({ message: 'Credenciais inválidas' });
 
     const isMatch = await user.comparePassword(password);
