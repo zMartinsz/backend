@@ -8,19 +8,22 @@ const JWT_SECRET = process.env.secret
 
 router.post('/registro', async (req, res) => {
   try {
-    const { name, email, password, type, empresa } = req.body;
+    const { name, emailOrCpf, password, type, empresa } = req.body;
 
     // 🛑 Validações básicas
-    if (!email || !password) 
-      return res.status(400).json({ message: 'Email e senha são obrigatórios' });
+    if (!emailOrCpf || !password)
+      return res.status(400).json({ message: 'Email/CPF e senha são obrigatórios' });
 
-    if (!validEmail(email)) 
-      return res.status(400).json({ message: 'Email inválido' });
+    const isEmail = validEmail(emailOrCpf);
+    const isCpf = validCPF(emailOrCpf);
 
-    if (!validPassword(password)) 
+    if (!isEmail && !isCpf)
+      return res.status(400).json({ message: 'Email ou CPF inválido' });
+
+    if (!validPassword(password))
       return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
 
-    if (!ValidType(type)) 
+    if (!ValidType(type))
       return res.status(400).json({ message: 'Cargo do usuário inválido' });
 
     // ✅ Validação do array de empresas
@@ -28,23 +31,33 @@ router.post('/registro', async (req, res) => {
       return res.status(400).json({ message: 'O campo empresa deve ser um array de strings válido' });
     }
 
-    // ⚠️ Verifica se o email já existe
-    const existing = await User.findOne({ email });
-    if (existing) 
-      return res.status(409).json({ message: 'Email já cadastrado' });
+    // ⚠️ Verifica se já existe o mesmo email ou CPF
+    const existing = await User.findOne({ $or: [{ email: emailOrCpf }, { cpf: emailOrCpf }] });
+    if (existing)
+      return res.status(409).json({ message: 'Email ou CPF já cadastrado' });
 
     // 💾 Cria o usuário
-    const user = new User({ name, email, password, type, empresa });
+    const userData = {
+      name,
+      password,
+      type,
+      empresa
+    };
+
+    if (isEmail) userData.email = emailOrCpf;
+    else userData.cpf = emailOrCpf;
+
+    const user = new User(userData);
     await user.save();
 
     // 🔑 Cria token JWT
-    const payload = { id: user._id, email: user.email };
+    const payload = { id: user._id, email: user.email || null, cpf: user.cpf || null };
     const token = jwt.sign(payload, JWT_SECRET);
 
     // 📤 Retorna resposta
-    res.status(201).json({ 
-      token, 
-      user: user.name 
+    res.status(201).json({
+      token,
+      user: user.name
     });
 
   } catch (err) {
