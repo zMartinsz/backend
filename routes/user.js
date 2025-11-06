@@ -166,8 +166,8 @@ router.post('/find/:id', async (req, res) => {
     }
 
     return res.status(200).json({
-      email: user.email,
-      name: user.cpf,
+      cpf: user.cpf,
+      name: user.name,
       tipo: user.type,
     });
   } catch (err) {
