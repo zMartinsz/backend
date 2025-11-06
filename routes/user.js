@@ -258,7 +258,7 @@ router.put('/update/:id', async (req, res) => {
 
     // Atualiza os campos
     if (name) user.name = name;
-    if (email) user.cpf = cpf;
+    if (cpf) user.cpf = cpf;
     if (type) user.type = type;
     if (empresa) user.empresa = empresa;
     if (password) user.password = password; // pre-save vai hash
@@ -270,7 +270,7 @@ router.put('/update/:id', async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.cpf,
+        cpf: user.cpf,
         type: user.type,
         empresa: user.empresa,
       },
