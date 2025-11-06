@@ -65,7 +65,7 @@ router.post('/registro', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { cpf, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email e senha são obrigatórios' });
+    if (!cpf || !password) return res.status(400).json({ message: 'cpf e senha são obrigatórios' });
 
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Credenciais inválidas' });
@@ -73,14 +73,14 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(401).json({ message: 'Credenciais inválidas' });
 
-    const payload = { id: user._id, email: user.email };
+    const payload = { id: user._id, cpf: user.cpf };
      if (user.token) {
       return res.status(200).json({ token: user.token, user: user.name });
     }
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
     user.token = token;
     await user.save();
-    res.json({ token, user: { id: user._id, email: user.email, name: user.name, tipo: user.type} });
+    res.json({ token, user: { id: user._id, cpf: user.cpf, name: user.name, tipo: user.type} });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro no servidor' });
