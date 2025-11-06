@@ -243,7 +243,7 @@ router.put('/update/:id', async (req, res) => {
     if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
 
     // Validações
-    if (email && !validCPF(cpf)) return res.status(400).json({ message: 'cpf inválido' });
+    if (cpf && !validCPF(cpf)) return res.status(400).json({ message: 'cpf inválido' });
     if (password && !validPassword(password)) return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
     if (type && !ValidType(type)) return res.status(400).json({ message: 'Cargo do usuário inválido' });
     if (empresa && (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== ''))) {
