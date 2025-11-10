@@ -146,6 +146,7 @@ router.get('/download/:uuid', async (req, res) => {
     res.setHeader('X-Tamanho', buf.length);
     res.setHeader('id', arquivo._id);
     res.setHeader('empresa', arquivo.empresa);
+    res.setHeader('cargo', arquivo.cargo);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Length', buf.length);
     res.setHeader('Content-Disposition', `attachment; filename="${arquivo.uuid}.pdf"`);
@@ -159,14 +160,15 @@ router.get('/download/:uuid', async (req, res) => {
 //#endregion
 
 //#region delete
-router.delete('/delete', async (req,res) => {
-  try{
-    const {uuid} = req.body
+router.delete('/delete', async (req, res) => {
+  try {
+    const { uuid } = req.body
     await Arquivo.findByIdAndDelete(uuid);
-    return res.status(200).json({arquivo: "deletado"})
-  }catch (err){
-  res.status(500).json({error: err.message})
-  }});
+    return res.status(200).json({ arquivo: "deletado" })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+});
 //#endregion
 
 //#region listar
@@ -182,14 +184,14 @@ router.get('/listar', async (req, res) => {
   const user = await User.findOne({ token: token });
   if (!user) return res.status(401).json({ message: 'Token inválido ou desativado' });
   // retorna só o _id
- const arquivos = await Arquivo.find(
-  {
-    cargo: { $in: user.type },
-    empresa: { $in: user.empresa }
-  },
-  { _id: 1, uuid: 1, empresa: 1, cargo: 1} // projeção
-);
-  return res.json({ arquivo: arquivos});
+  const arquivos = await Arquivo.find(
+    {
+      cargo: { $in: user.type },
+      empresa: { $in: user.empresa }
+    },
+    { _id: 1, uuid: 1, empresa: 1, cargo: 1 } // projeção
+  );
+  return res.json({ arquivo: arquivos });
 });
 //#endregion
 router.post('/listar/:id', async (req, res) => {
