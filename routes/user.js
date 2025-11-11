@@ -245,7 +245,9 @@ router.put('/update/:id', async (req, res) => {
     // Validações
     if (cpf && !validCPF(cpf)) return res.status(400).json({ message: 'cpf inválido' });
     if (password && !validPassword(password)) return res.status(400).json({ message: 'Senha fraca (mín 6 caracteres)' });
-    if (type && !ValidType(type)) return res.status(400).json({ message: 'Cargo do usuário inválido' });
+    if (!Array.isArray(type) || type.length === 0 || !type.every(e => typeof e === 'string' && e.trim() !== '')) {
+      return res.status(400).json({ message: 'Cargo do usuário inválido' });
+    }
     if (empresa && (!Array.isArray(empresa) || empresa.length === 0 || !empresa.every(e => typeof e === 'string' && e.trim() !== ''))) {
       return res.status(400).json({ message: 'O campo empresa deve ser um array de strings válido' });
     }
