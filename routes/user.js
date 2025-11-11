@@ -20,7 +20,7 @@ router.post('/registro', async (req, res) => {
     if (!validPassword(password))
       return res.status(400).json({ message: 'Senha fraca (mínimo de 6 caracteres)' });
 
-    if (!ValidType(type))
+    if (!Array.isArray(type) || type.length === 0 || !type.every(e => typeof e === 'string' && e.trim() !== ''))
       return res.status(400).json({ message: 'Cargo do usuário inválido' });
 
     // ✅ Validação do array de empresas
@@ -74,13 +74,13 @@ router.post('/login', async (req, res) => {
     if (!isMatch) return res.status(401).json({ message: 'Credenciais inválidas' });
 
     const payload = { id: user._id, cpf: user.cpf };
-     if (user.token) {
+    if (user.token) {
       return res.status(200).json({ token: user.token, user: user.name });
     }
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
     user.token = token;
     await user.save();
-    res.json({ token, user: { id: user._id, cpf: user.cpf, name: user.name, tipo: user.type} });
+    res.json({ token, user: { id: user._id, cpf: user.cpf, name: user.name, tipo: user.type } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro no servidor' });
@@ -116,43 +116,43 @@ router.post('/logout', async (req, res) => {
 //#endregion
 //#region Deletar
 router.post('/delete_account', async (req, res) => {
- try {
-  const { name } = req.body;
-  const authHeader = req.headers.authorization;
+  try {
+    const { name } = req.body;
+    const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token não providenciado' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token não providenciado' });
+    }
+
+    if (!name) {
+      return res.status(400).json({ message: 'Nome do usuário é obrigatório' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const user = await User.findOne({ token });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário com esse token não encontrado' });
+    }
+
+    const isAdm = Array.isArray(user.type) && user.type.includes("adm");
+
+    if (!isAdm) {
+      return res.status(403).json({ message: 'Acesso negado. Apenas administradores podem deletar usuários.' });
+    }
+
+    const deleted = await User.deleteOne({ name });
+
+    if (deleted.deletedCount === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado para exclusão.' });
+    }
+
+    return res.status(200).json({ message: `Usuário '${name}' deletado com sucesso.` });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
   }
-
-  if (!name) {
-    return res.status(400).json({ message: 'Nome do usuário é obrigatório' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  const user = await User.findOne({ token });
-
-  if (!user) {
-    return res.status(404).json({ message: 'Usuário com esse token não encontrado' });
-  }
-
-  const isAdm = Array.isArray(user.type) && user.type.includes("adm");
-
-  if (!isAdm) {
-    return res.status(403).json({ message: 'Acesso negado. Apenas administradores podem deletar usuários.' });
-  }
-
-  const deleted = await User.deleteOne({ name });
-
-  if (deleted.deletedCount === 0) {
-    return res.status(404).json({ message: 'Usuário não encontrado para exclusão.' });
-  }
-
-  return res.status(200).json({ message: `Usuário '${name}' deletado com sucesso.` });
-
-} catch (err) {
-  console.error(err);
-  return res.status(500).json({ error: 'Erro interno do servidor', details: err.message });
-}
 });
 //#endregion
 //#region buscar
@@ -194,7 +194,7 @@ router.post('/fc', async (req, res) => {
     // 👇 verifica se existe "adm" no array user.type
     const isAdm = Array.isArray(user.type) && user.type.includes("adm");
     const empresa = user.empresa;
-    return res.status(200).json({ isAdm, empresa});
+    return res.status(200).json({ isAdm, empresa });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Erro ao procurar cargo' });
@@ -204,7 +204,7 @@ router.post('/fc', async (req, res) => {
 //#endregion
 
 router.get('/ping', async (req, res) => {
-res.status(200).json({message: 'pingado'})
+  res.status(200).json({ message: 'pingado' })
 });
 
 router.get('/listar', async (req, res) => {
@@ -223,7 +223,7 @@ router.get('/listar', async (req, res) => {
     // busca usuários que NÃO tenham 'adm' no array type
     const usuarios = await User.find(
       { type: { $nin: ['adm'] } }, // <- aqui é o filtro mágico
-      { name:1 } // projeção
+      { name: 1 } // projeção
     );
 
     return res.json({ user: usuarios });
